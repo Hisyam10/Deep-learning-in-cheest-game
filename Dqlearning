@@ -1,0 +1,47 @@
+import tensorflow as tf
+import numpy as np
+
+# Definisi model Deep Q-Network (DQN)
+class DQN(tf.keras.Model):
+    def __init__(self, state_size, action_size):
+        super(DQN, self).__init__()
+        self.dense1 = tf.keras.layers.Dense(64, activation='relu')
+        self.dense2 = tf.keras.layers.Dense(64, activation='relu')
+        self.output_layer = tf.keras.layers.Dense(action_size, activation=None)
+
+    def call(self, inputs):
+        x = self.dense1(inputs)
+        x = self.dense2(x)
+        return self.output_layer(x)
+
+# Inisialisasi model
+state_size = 64  # misalnya, 64 kotak pada papan catur
+action_size = 4096  # jumlah langkah yang mungkin dalam permainan catur
+model = DQN(state_size, action_size)
+
+# Fungsi loss dan optimizer
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+loss_function = tf.keras.losses.MeanSquaredError()
+
+# Training loop (gunakan environment dan data training)
+for episode in range(num_episodes):
+    state = env.reset()
+    done = False
+    while not done:
+        # Pilih aksi berdasarkan kebijakan epsilon-greedy
+        action = epsilon_greedy_policy(state)
+        
+        # Ambil langkah di environment
+        next_state, reward, done, _ = env.step(action)
+        
+        # Hitung target Q-value menggunakan rumus Bellman
+        target = reward + gamma * np.max(model.predict(next_state))
+        
+        # Hitung loss dan lakukan backpropagation
+        with tf.GradientTape() as tape:
+            predicted_values = model(state)
+            loss = loss_function(tf.stop_gradient(target), predicted_values[action])
+        gradients = tape.gradient(loss, model.trainable_variables)
+        optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+        
+        state = next_state
